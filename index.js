@@ -9,6 +9,7 @@ import {
   StyleSheet,
   View,
   Text,
+  Platform
 } from 'react-native';
 
 const styles = StyleSheet.create({
@@ -50,30 +51,13 @@ const styles = StyleSheet.create({
 });
 
 class PercentageCircle extends Component {
-  propTypes: {
-    color: React.PropTypes.string,
-    bgcolor: React.PropTypes.string,
-    innerColor: React.PropTypes.string,
-    radius: React.PropTypes.number,
-    percent: React.PropTypes.number,
-    borderWidth: React.Proptypes.number,
-    textStyle: React.Proptypes.array,
-    disabled: React.PropTypes.bool,
-  }
 
   constructor(props) {
     super(props);
     let percent = this.props.percent;
     let leftTransformerDegree = '0deg';
     let rightTransformerDegree = '0deg';
-    if (percent >= 50) {
-      rightTransformerDegree = '180deg';
-      leftTransformerDegree = (percent - 50) * 3.6 + 'deg';
-    } else {
-      rightTransformerDegree = percent * 3.6 + 'deg';
-      leftTransformerDegree = '0deg';
-    }
-
+    
     this.state = {
       percent: this.props.percent,
       borderWidth: this.props.borderWidth < 2 || !this.props.borderWidth ? 2 : this.props.borderWidth,
@@ -83,25 +67,26 @@ class PercentageCircle extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
-    let percent = nextProps.percent;
-    let leftTransformerDegree = '0deg';
-    let rightTransformerDegree = '0deg';
-    if (percent >= 50) {
-      rightTransformerDegree = '180deg';
-      leftTransformerDegree = (percent - 50) * 3.6 + 'deg';
-    } else {
-      rightTransformerDegree = percent * 3.6 + 'deg';
-    }
-    this.setState({
-      percent: this.props.percent,
-      borderWidth: this.props.borderWidth < 2 || !this.props.borderWidth ? 2 : this.props.borderWidth,
-      leftTransformerDegree: leftTransformerDegree,
-      rightTransformerDegree: rightTransformerDegree
-    });
-  }
-
   render() {
+  const percent = this.props.percent;
+  let leftTransformerDegree = '0deg';
+  let rightTransformerDegree = '0deg';
+  let bgcolor = this.props.bgcolor;
+  let color = this.props.color;
+  if (percent >= 50) {
+    rightTransformerDegree = '180deg';
+    leftTransformerDegree = (percent - 50) * 3.6 + 'deg';
+  } else {
+      if (Platform.OS === 'android'){
+          rightTransformerDegree = '0deg';
+          leftTransformerDegree = percent * 3.6 + 'deg';
+          //odd, but flip colors works for android
+          bgcolor = this.props.color
+          color = this.props.bgcolor;
+      } else {
+          rightTransformerDegree = (percent * 3.6) + 'deg';
+      }
+  }
     if (this.props.disabled) {
       return (
         <View style={[styles.circle,{
@@ -118,7 +103,7 @@ class PercentageCircle extends Component {
         width:this.props.radius*2,
         height: this.props.radius*2,
         borderRadius:this.props.radius,
-        backgroundColor: this.props.bgcolor
+        backgroundColor: bgcolor
       }]}>
         <View style={[styles.leftWrap,{
           width: this.props.radius,
@@ -131,8 +116,9 @@ class PercentageCircle extends Component {
             height: this.props.radius*2,
             borderTopLeftRadius:0,
             borderBottomLeftRadius:0,
-            backgroundColor:this.props.color,
-            transform:[{translateX:-this.props.radius/2},{rotate:this.state.leftTransformerDegree},{translateX:this.props.radius/2}],
+            backgroundColor: color,
+            borderWidth:0,
+            transform:[{translateX:-this.props.radius/2},{rotate:leftTransformerDegree},{translateX:this.props.radius/2}],
           }]}></View>
         </View>
         <View style={[styles.leftWrap,{
@@ -146,8 +132,9 @@ class PercentageCircle extends Component {
             height: this.props.radius*2,
             borderTopRightRadius:0,
             borderBottomRightRadius:0,
-            backgroundColor: this.props.color,
-            transform:[{translateX:this.props.radius/2},{rotate:this.state.rightTransformerDegree},{translateX:-this.props.radius/2}],
+            backgroundColor: color,
+            borderWidth:0,
+            transform:[{translateX:this.props.radius/2},{rotate:rightTransformerDegree},{translateX:-this.props.radius/2}],
           }]}></View>
         </View>
         <View style={[styles.innerCircle,{
